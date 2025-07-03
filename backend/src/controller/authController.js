@@ -31,7 +31,8 @@ const authController = {
                 name: data.name,
                 email: data.email,
                 role:data.role? data.role:'admin',
-                adminId: data.adminId
+                adminId: data.adminId,
+                credits: data.credits
             };
             const token = jwt.sign(userDetails, process.env.JWT_SECRET, { expiresIn: '1h' });
 
@@ -82,7 +83,8 @@ const authController = {
                 email:username,
                 password:encryptedPassword,
                 name:name,
-                role:'admin'
+                role:'admin',
+                credits: data.credits
             });
 
             await user.save();
@@ -126,7 +128,8 @@ const authController = {
                 id:data._id? data._id:googleId,
                 username:email,
                 name:name,
-                role: data.role? data.role:'admin'
+                role: data.role? data.role:'admin',
+                credits:data.credits
             };
 
             const token=jwt.sign(user,process.env.JWT_SECRET,{expiresIn:'1h'});
