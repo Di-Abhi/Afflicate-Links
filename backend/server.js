@@ -12,7 +12,13 @@ const cookieParser = require('cookie-parser');
 const { default: mongoose } = require('mongoose');
 
 
-app.use(express.json()); //Middleware
+app.use((request, response,next)=>{
+    if(request.originalUrl.startsWith('/payments/webhook')){
+        return next();
+    }
+    express.json()(request,response,next);
+});
+ //Middleware
 app.use(cookieParser());
 
 mongoose.connect(process.env.MONGO_URI)

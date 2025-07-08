@@ -85,7 +85,7 @@ const authController = {
                 password:encryptedPassword,
                 name:name,
                 role:'admin',
-                credits:user.credits
+                credits:0
             });
 
             await user.save();
