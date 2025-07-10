@@ -17,7 +17,8 @@ import ManageUsers from "./pages/users/ManageUsers";
 import ProtectedRoute from "./rbac/ProtectedRoute";
 import UnauthorizedAccess from "./components/UnauthorizedAccess";
 import ManagePayments from "./payments/ManagePayments";
-import Error from "./pages/Error"; // ✅ Error Page Import
+import Error from "./pages/Error"; 
+import AnalyticsDashboard from "./components/links/AnalyticsDashboard";
 
 function App() {
   const userDetails = useSelector((state) => state.userDetails);
@@ -181,6 +182,15 @@ function App() {
           <AppLayout>
             <Error />
           </AppLayout>
+        }
+      />
+      <Route
+        path='/analytics/:linkId'
+        element={userDetails ?
+          <UserLayout>
+            <AnalyticsDashboard/>
+          </UserLayout>:
+          <Navigate to='/login'/>
         }
       />
     </Routes>

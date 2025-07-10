@@ -1,6 +1,8 @@
 const Clicks = require("../model/Clicks");
 const Links = require("../model/Links");
 const axios = require('axios');
+const Users = require('../model/Users');
+const { getDeviceInfo } = require('../utils/linksUtility')
 
 const linksController={
     create:async(request,response)=>{
@@ -131,7 +133,7 @@ const linksController={
                 return response.status(401).json({error:"Link id is required"});
             }
 
-            let link = await Links.findById(linkId);
+            const link = await Links.findById(linkId);
             if(!link){
                 return response.status(404).json({error:"Link does not exist with the given id"});
             }
@@ -142,7 +144,7 @@ const linksController={
                 :request.headers['x-forwaded-for']?.split(',')[0] || request.socket.remoteAddress;
             
             const geoResponse = await axios.get(`http://ip-api.com/json/${ipAddress}`);
-            const {city, country, region, lat, lon, isp} = geoResponse;
+            const {city, country, region, lat, lon, isp} = geoResponse.data;
 
             const userAgent = request.headers['user-agent'] || 'Unknown';
             const {deviceType, browser} = getDeviceInfo(userAgent);
@@ -174,21 +176,21 @@ const linksController={
             return response.status(500).json({error:"Internal server error"})
         }
     },
-    analytics: async (request,response)=>{
+    analytics: async(request,response)=>{
         try{
-            const {linkId,from,to} = request.query;
+            const {linkId, from, to}=request.query;
 
             const link = await Links.findById(linkId);
             if(!link){
                 return response.status(404).json({
-                    error: 'Link not found'
+                    error:'Link not found'
                 });
             }
 
             const userId = request.user.role === 'admin'
-                ? request.user.id 
+                ? request.user.id
                 : request.user.adminId;
-            if(link.user.toString()!==userId){
+            if(link.user.toString() !== userId){
                 return response.status(403).json({error: 'Unauthorized access'})
             }
 
@@ -197,16 +199,15 @@ const linksController={
             };
 
             if(from && to){
-                query.clickedAt= {$gte: new Date(from),$lte: new Date(to)};
+                query.clickedAt = {$gte: new Date(from), $lte: new Date(to)};
             }
 
-            const data= await Clicks.find(query).sort({clickedAt:-1});
-            response.json(data)
-        }
-        catch(error){
+            const data = await Clicks.find(query).sort({clickedAt: -1});
+            response.json(data);
+        }catch(error){
             console.log(error);
             response.status(500).json({
-                message: 'Interanl server error'
+                message:'Internal server error'
             });
         }
     }
