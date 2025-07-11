@@ -19,11 +19,27 @@ import UnauthorizedAccess from "./components/UnauthorizedAccess";
 import ManagePayments from "./payments/ManagePayments";
 import Error from "./pages/Error"; 
 import AnalyticsDashboard from "./components/links/AnalyticsDashboard";
+import { serverEndpoint } from "./config";
+import { SET_USER } from "./redux/actions";
 
 function App() {
   const userDetails = useSelector((state) => state.userDetails);
   const [loading, setLoading] = useState(true);
   const dispatch = useDispatch();
+
+  const attemptToRefreshToken = async()=>{
+    try{
+      const response = await axios.post(`${serverEndpoint}/auth/refresh-toekn`,{},{
+        withCredentials:true
+      });
+      dispatch({
+        type: SET_USER,
+        payload: response.data.userDetails
+      });
+    }catch(error){
+      console.log(error);
+    }
+  }
 
   const isUserLoggedIn = async () => {
     try {
@@ -37,7 +53,12 @@ function App() {
         payload: response.data.userDetails,
       });
     } catch (error) {
-      console.error("User not logged in:", error?.response?.data || error.message);
+      if(error.response?.status===401){
+        console.log('Token expired, attempting to refresh');
+        await attemptToRefreshToken();
+      }else{
+        console.log("User not loggedin",error);
+      }
     } finally {
       setLoading(false);
     }

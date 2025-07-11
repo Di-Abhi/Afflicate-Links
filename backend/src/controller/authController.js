@@ -1,7 +1,6 @@
 const bcrypt=require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const Users = require('../model/Users');
-const secret = "309b161a-5c19-4952-bef1-546829211287";
 const {OAuth2Client} = require('google-auth-library');
 const { validationResult } = require('express-validator');
 
@@ -35,6 +34,7 @@ const authController = {
                 credits:data.credits
             };
             const token = jwt.sign(userDetails, process.env.JWT_SECRET, { expiresIn: '1h' });
+            const refreshToken = jwt.sign(userDetails,process.env.REFRESH_JWT_SECRET, { expiresIn: '7d' })
 
             response.cookie('jwtToken', token, {
                 httpOnly: true,
@@ -42,6 +42,14 @@ const authController = {
                 domain: 'localhost',
                 path: '/'
             });
+
+            response.cookie('refreshToken',refreshToken,{
+                httpOnly:true,
+                secure:true,
+                domain: 'localhost',
+                path: '/'
+            });
+
             response.json({ message: 'User authenticated', userDetails: userDetails });
         } catch (error) {
             console.log(error);
@@ -51,6 +59,7 @@ const authController = {
 
     logout: (request, response) => {
         response.clearCookie('jwtToken');
+        response.clearCookie('refreshToken');
         response.json({ message: 'User logged out succesfully' });
     },
 
@@ -134,7 +143,16 @@ const authController = {
             };
 
             const token=jwt.sign(user,process.env.JWT_SECRET,{expiresIn:'1h'});
+            const refreshToken= jwt.sign(user,process.env.REFRESH_JWT_SECRET,{expiresIn: '7d'});
+
             response.cookie('jwtToken',token,{
+                httpOnly:true,
+                secure:true,
+                domain:'localhost',
+                path:'/'
+            });
+
+            response.cookie('refreshToken',refreshToken,{
                 httpOnly:true,
                 secure:true,
                 domain:'localhost',
@@ -146,7 +164,30 @@ const authController = {
                 console.log(error);
                 return response.status(500).json({error: 'Internal server error'});
         }
-    }
+    },
+    refreshAccessToken: async (request, response) => {
+        try {
+            const refreshToken = request.cookies.refreshToken;
+            if (!refreshToken) {
+                return response.status(401).json({ error: 'Refresh token missing' });
+            }
+            const decoded = jwt.verify(refreshToken,process.env.REFRESH_JWT_SECRET);
+            const user = await Users.findById({_id: decoded.id});
+
+            const newAccessToken = jwt.sign(user,process.enc.JWT_SECRET,{expiresIn: '1h'});
+
+            response.cookie('jwtToken',newAccessToken,{
+                httpOnly:true,
+                secure: true,
+                domain: 'localhost',
+                path:'/'
+            });
+            response.json({message: "Token refreshed", userDetails: user});
+        } catch (error) {
+            console.log(error);
+            response.status(500).json({ error: 'Internal server error' });
+        }
+    },
 };
 
 module.exports = authController;
