@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const Users = require('../model/Users');
 const {OAuth2Client} = require('google-auth-library');
 const { validationResult } = require('express-validator');
+const emailService = require('../service/emailService');
 
 
 const authController = {
@@ -188,6 +189,53 @@ const authController = {
             response.status(500).json({ error: 'Internal server error' });
         }
     },
+    
+    sendResetPasswordToken: async (request,response)=>{
+        try{
+            const {email}=request.body;
+            if (!email) return response.status(400).json({ message: 'Email is required' });
+            const user = await Users.findOne({email});
+            if(!user) return response.status(404).json({message: 'User not found'});
+            const code = Math.floor(100000+Math.random()*900000).toString();
+            const expiry = Date.now()+10*60*1000;
+
+            user.resetToken = code;
+            user.resetTokenExpiry=expiry;
+            await user.save();
+
+            // Send email with code
+            await emailService.send(email, 'Your Password Reset Code', `Your password reset code is: ${code}`);
+
+            return response.status(200).json({ message: 'Reset code sent to email.' });
+        }catch (error) {
+            console.log(error);
+            response.status(500).json({ error: 'Internal server error' });
+        }
+    },
+
+    resetPassword: async (request,response)=>{
+        try{
+            const {email, code, newPassword}= request.body;
+            if(!email||!code||!newPassword){
+                return response.status(400).json({message: 'All fields are required.'})
+            }
+            const user = await Users.findOne({email});
+            if(!user||user.resetToken!==code || user.resetTokenExpiry<Date.now()){
+                return response.status(400).json({message: 'Invalid or expired code'});
+            }
+            const hashedPassword = await bcrypt.hash(newPassword,10);
+            user.password=hashedPassword;
+            user.resetToken=null;
+            user.resetTokenExpiry=null;
+            await user.save();
+
+            return response.status(200).json({message: 'Password reset successful'});
+
+        }catch (error) {
+        console.log(error);
+        return response.status(500).json({ message: 'Internal server error' });
+    }
+    }
 };
 
 module.exports = authController;

@@ -161,6 +161,11 @@ function Login() {
         </GoogleOAuthProvider>
         <div className="text-center">
           <p className="mb-0">
+            <Link to="/forgot-password" className="text-decoration-none">
+              Forgot Password?
+            </Link>
+          </p>
+          <p className="mb-0">
             Don't have an account?{" "}
             <Link to="/register" className="text-decoration-none">
               Register here

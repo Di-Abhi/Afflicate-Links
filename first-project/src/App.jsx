@@ -21,6 +21,8 @@ import Error from "./pages/Error";
 import AnalyticsDashboard from "./components/links/AnalyticsDashboard";
 import { serverEndpoint } from "./config";
 import { SET_USER } from "./redux/actions";
+import ForgetPassword from './components/ForgetPassword';
+import ResetPassword from './components/ResetPassword';
 
 function App() {
   const userDetails = useSelector((state) => state.userDetails);
@@ -193,6 +195,25 @@ function App() {
           ) : (
             <Navigate to="/login" />
           )
+        }
+      />
+
+      {/* Forget Password */}
+      <Route
+        path="/forgot-password"
+        element={
+          <AppLayout>
+            <ForgetPassword />
+          </AppLayout>
+        }
+      />
+      {/* Reset Password */}
+      <Route
+        path="/reset-password"
+        element={
+          <AppLayout>
+            <ResetPassword />
+          </AppLayout>
         }
       />
 

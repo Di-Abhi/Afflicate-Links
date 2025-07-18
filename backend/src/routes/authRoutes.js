@@ -19,5 +19,7 @@ router.post('/is-user-logged-in',authController.isUserLoggedIn);
 router.post('/register',authController.register);
 router.post('/google-auth',authController.googleAuth);
 router.post('/refresh-token',authController.refreshAccessToken);
+router.post('/sendResetPasswordToken', authController.sendResetPasswordToken);
+router.post('/resetPassword', authController.resetPassword);
 
 module.exports=router;

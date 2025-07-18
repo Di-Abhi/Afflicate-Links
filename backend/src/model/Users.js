@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const subscriptionSchema = new mongoose.Schema({
     id:{
-        type:String,  //Razorpay subscription ID
+        type:String,  
     },
     status:{
         type:String,
@@ -66,6 +66,12 @@ const UsersSchema=new mongoose.Schema({
     subscription:{
         type: subscriptionSchema,
         default:()=>({})
+    },
+    resetToken:{
+        type: String
+    },
+    resetTokenExpiry:{
+        type: Date
     }
 });
 
